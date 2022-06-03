@@ -1,0 +1,30 @@
+#!/bin/sh
+readlink_cmd="/usr/bin/readlink"
+dirname_cmd="/usr/bin/dirname"
+command_rc="command.rc"
+
+unset BYPASS
+unset FORCE
+while getopts 'fy' c
+do
+	case $c in
+		y) BYPASS="-y " ;;
+		f) FORCE=" --no-confirm" ;;
+	esac
+done
+shift $((OPTIND-1))
+
+# Absolute path to this script, e.g. /home/user/bin/foo.csh
+SCRIPT=`${readlink_cmd} -f "$0"`
+# Absolute path this script is in, thus /home/user/bin
+SCRIPT_PATH=`${dirname_cmd} "$SCRIPT"`
+
+if [ -e "${SCRIPT_PATH}/${command_rc}" ]
+then
+	COMMAND="/usr/local/sbin/portmaster -a${FORCE}"
+	(${SCRIPT_PATH}/${command_rc} ${BYPASS}${COMMAND})
+else
+	echo "Internal script fail."
+fi
+
+exit $?
