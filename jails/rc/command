@@ -1,17 +1,20 @@
 #!/bin/sh
 awk_cmd="/usr/bin/awk"
-CHROOT="/usr/sbin/chroot"
-CP="/bin/cp"
-DIFF="/usr/bin/diff"
-FREEBSDUPDATE="/usr/sbin/freebsd-update"
-FREEBSDVERSION="/bin/freebsd-version"
+basename_cmd="/usr/bin/basename"
+dirname_cmd="/usr/bin/dirname"
 getopts_cmd="/usr/bin/getopts"
 hostname_cmd="/bin/hostname"
 jexec_cmd="/usr/sbin/jexec"
 jls_cmd="/usr/sbin/jls"
-SHA256="/sbin/sha256"
+readlink_cmd="/usr/bin/readlink"
 
-. colour
+# Absolute path to this script, e.g. /home/user/bin/foo.csh
+RC_SCRIPT=`${readlink_cmd} -f "$0"`
+RC_SCRIPT_NAME=`${basename_cmd} "${RC_SCRIPT}"`
+# Absolute path this script is in, thus /home/user/bin
+RC_SCRIPT_PATH=`${dirname_cmd} "${RC_SCRIPT}"`
+
+. (${RC_SCRIPT_PATH}/colour)
 
 unset BYPASS
 while getopts 'y' c
