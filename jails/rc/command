@@ -14,7 +14,7 @@ RC_SCRIPT_NAME=`${basename_cmd} "${RC_SCRIPT}"`
 # Absolute path this script is in, thus /home/user/bin
 RC_SCRIPT_PATH=`${dirname_cmd} "${RC_SCRIPT}"`
 
-. (${RC_SCRIPT_PATH}/colour)
+. ${RC_SCRIPT_PATH}/colour
 
 unset BYPASS
 while getopts 'y' c
@@ -28,7 +28,7 @@ shift $((OPTIND-1))
 COMMAND="$@"
 COMMAND_FILE="$1"
 
-if [ -e ${COMMAND_FILE} ]
+if [ "X${COMMAND_FILE}X" == "XX"]
 then
 	echo "No command specified."
 	exit 1
