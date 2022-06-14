@@ -2,7 +2,7 @@
 basename_cmd="/usr/bin/basename"
 dirname_cmd="/usr/bin/dirname"
 readlink_cmd="/usr/bin/readlink"
-command_rc="command.rc"
+command_rc="rc/command"
 
 # Absolute path to this script, e.g. /home/user/bin/foo.csh
 SCRIPT=`${readlink_cmd} -f "$0"`
