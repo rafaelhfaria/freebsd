@@ -1,0 +1,39 @@
+#!/bin/sh
+basename_cmd="/usr/bin/basename"
+dirname_cmd="/usr/bin/dirname"
+readlink_cmd="/usr/bin/readlink"
+command_rc="rc/command"
+
+# Absolute path to this script, e.g. /home/user/bin/foo.csh
+SCRIPT=`${readlink_cmd} -f "$0"`
+SCRIPT_NAME=`${basename_cmd} "${SCRIPT}"`
+# Absolute path this script is in, thus /home/user/bin
+SCRIPT_PATH=`${dirname_cmd} "${SCRIPT}"`
+
+unset BYPASS
+unset FORCE
+while getopts 'fyh' c
+do
+	case $c in
+		y) BYPASS="-y " ;;
+		f) FORCE=" --no-confirm" ;;
+		h)
+			echo "usage: ${SCRIPT_NAME} [-fhy]"
+			echo "  -f   Force the autoremove in the packages inside the jail."
+			echo "  -h   This help."
+			echo "  -y   Run the command on all jails without asking."
+			exit 0
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+if [ -e "${SCRIPT_PATH}/${command_rc}" ]
+then
+	COMMAND="/usr/sbin/pkg autoremove ${FORCE}"
+	(${SCRIPT_PATH}/${command_rc} ${BYPASS}${COMMAND})
+	exit $?
+fi
+
+echo "Internal script failure."
+exit 1
