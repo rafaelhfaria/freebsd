@@ -16,7 +16,7 @@ while getopts 'fyh' c
 do
 	case $c in
 		y) BYPASS="-y " ;;
-		f) FORCE=" --no-confirm" ;;
+		f) FORCE="-y" ;;
 		h)
 			echo "usage: ${SCRIPT_NAME} [-fhy]"
 			echo "  -f   Force the autoremove in the packages inside the jail."
