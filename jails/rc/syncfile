@@ -1,0 +1,96 @@
+#!/bin/sh
+awk_cmd="/usr/bin/awk"
+basename_cmd="/usr/bin/basename"
+dirname_cmd="/usr/bin/dirname"
+cp_cmd="/bin/cp"
+diff_cmd="/usr/bin/diff"
+hostname_cmd="/bin/hostname"
+jexec_cmd="/usr/sbin/jexec"
+jls_cmd="/usr/sbin/jls"
+readlink_cmd="/usr/bin/readlink"
+sha256_cmd="/sbin/sha256"
+
+# Absolute path to this script, e.g. /home/user/bin/foo.csh
+RC_SCRIPT=`${readlink_cmd} -f "$0"`
+RC_SCRIPT_NAME=`${basename_cmd} "${RC_SCRIPT}"`
+# Absolute path this script is in, thus /home/user/bin
+RC_SCRIPT_PATH=`${dirname_cmd} "${RC_SCRIPT}"`
+
+. ${RC_SCRIPT_PATH}/colour
+
+unset VERBOSE
+VERBOSE=""
+while getopts 'v' c
+do
+        case $c in
+                n) VERBOSE=" -v" ;;
+        esac
+done
+shift $((OPTIND-1))
+
+FILE="$1"
+BASE_JAIL="/jails/.base"
+
+if [ -z "${FILE}" ]
+then
+	echo "No filename specified."
+	exit 1
+fi
+
+if [ ! -e "${BASE_JAIL}${FILE}" ]
+then
+	echo "Filename not found. [${BASE_JAIL}${FILE}]"
+	exit 2
+fi
+
+BASE_CHECKSUM=`${sha256_cmd} -q ${BASE_JAIL}${FILE}`
+
+echo -e "Syncing base jail file ${UWhite}${FILE}${Color_Off} with following jails:"
+
+JAILS=`${jls_cmd} | ${awk_cmd} '{if(NR>1)print $1}'`
+
+for JAIL in ${JAILS}
+do
+	SYSTEMHOST=`${jexec_cmd} ${JAIL} ${hostname_cmd}`
+	JAIL_PATH=`${jls_cmd} -j ${JAIL}| ${awk_cmd} '{if(NR>1)print $3}'`
+
+	printf "${BIGreen}==>${Color_Off} ${BIPurple}${SYSTEMHOST}${Color_Off}: ${BWhite}${FILE}${Color_Off}\n"
+	
+	if [ ! -e "${JAIL_PATH}${FILE}" ]
+	then
+		printf "${BIBlue}  >${Color_Off} New file.\n"
+		(${cp_cmd} ${VERBOSE} ${BASE_JAIL}${FILE} ${JAIL_PATH}${FILE})
+
+		continue
+	fi
+
+	JAIL_CHECKSUM=`${jexec_cmd} ${JAIL} ${sha256_cmd} -q ${FILE}`
+
+	if [ "X${BASE_CHECKSUM}X" = "X${JAIL_CHECKSUM}X" ]
+	then
+		printf "${BIGreen}  >${Color_Off} file is equal.\n"
+	else
+		printf "${BICyan}  >${Color_Off} different."
+		SYNC="X"
+		while [ ! "X${SYNC}X" = "XYX" ] && [ ! "X${SYNC}X" = "XyX" ] && [ ! "X${SYNC}X" = "XX" ] && [ ! "X${SYNC}X" = "XNX" ] && [ ! "X${SYNC}X" = "XnX" ]
+		do
+			printf "${BIGreen}  > Overwrite? [y/N/d] "
+			read SYNC
+			printf "\033[1A\033[2K"
+
+			if [ "X${SYNC}X" = "XYX" ] || [ "X${SYNC}X" = "XyX" ]
+			then
+				printf "${BIPurple}  >${Color_Off} Copied.\n"
+				(${cp_cmd} ${VERBOSE} ${BASE_JAIL}${FILE} ${JAIL_PATH}${FILE})
+			elif [ "X${SYNC}X" = "XDX" ] || [ "X${SYNC}X" = "XdX" ]
+			then
+				(${diff_cmd} -u ${JAIL_PATH}${FILE} ${BASE_JAIL}${FILE})
+			elif [ "X${SYNC}X" = "XNX" ] || [ "X${SYNC}X" = "XnX" ] || [ "X${SYNC}X" = "XX" ]
+			then
+				printf "${BIRed}  >${Color_Off} not changed.\n"
+			fi
+		done
+	fi
+done
+
+exit 0
