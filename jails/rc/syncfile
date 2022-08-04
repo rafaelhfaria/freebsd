@@ -70,11 +70,11 @@ do
 	then
 		printf "${BIGreen}  >${Color_Off} file is equal.\n"
 	else
-		printf "${BICyan}  >${Color_Off} different."
+		printf "${BICyan}  >${Color_Off} checksum mismatched.\n"
 		SYNC="X"
 		while [ ! "X${SYNC}X" = "XYX" ] && [ ! "X${SYNC}X" = "XyX" ] && [ ! "X${SYNC}X" = "XX" ] && [ ! "X${SYNC}X" = "XNX" ] && [ ! "X${SYNC}X" = "XnX" ]
 		do
-			printf "${BIGreen}  > Overwrite? [y/N/d] "
+			printf "${BIGreen}  >${Color_Off} Overwrite? [y/N/d] "
 			read SYNC
 			printf "\033[1A\033[2K"
 
