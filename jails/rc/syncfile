@@ -23,7 +23,7 @@ VERBOSE=""
 while getopts 'v' c
 do
         case $c in
-                n) VERBOSE=" -v" ;;
+                v) VERBOSE="-v " ;;
         esac
 done
 shift $((OPTIND-1))
@@ -59,7 +59,7 @@ do
 	if [ ! -e "${JAIL_PATH}${FILE}" ]
 	then
 		printf "${BIBlue}  >${Color_Off} New file.\n"
-		(${cp_cmd} ${VERBOSE} ${BASE_JAIL}${FILE} ${JAIL_PATH}${FILE})
+		(${cp_cmd} ${VERBOSE}${BASE_JAIL}${FILE} ${JAIL_PATH}${FILE})
 
 		continue
 	fi
@@ -70,7 +70,7 @@ do
 	then
 		printf "${BIGreen}  >${Color_Off} file is equal.\n"
 	else
-		printf "${BICyan}  >${Color_Off} checksum mismatched.\n"
+		printf "${BIRed}  >${Color_Off} checksum mismatched.\n"
 		SYNC="X"
 		while [ ! "X${SYNC}X" = "XYX" ] && [ ! "X${SYNC}X" = "XyX" ] && [ ! "X${SYNC}X" = "XX" ] && [ ! "X${SYNC}X" = "XNX" ] && [ ! "X${SYNC}X" = "XnX" ]
 		do
@@ -80,14 +80,14 @@ do
 
 			if [ "X${SYNC}X" = "XYX" ] || [ "X${SYNC}X" = "XyX" ]
 			then
-				printf "${BIPurple}  >${Color_Off} Copied.\n"
-				(${cp_cmd} ${VERBOSE} ${BASE_JAIL}${FILE} ${JAIL_PATH}${FILE})
+				printf "${BIBlue}  >${Color_Off} Copied.\n"
+				(${cp_cmd} ${VERBOSE}${BASE_JAIL}${FILE} ${JAIL_PATH}${FILE})
 			elif [ "X${SYNC}X" = "XDX" ] || [ "X${SYNC}X" = "XdX" ]
 			then
 				(${diff_cmd} -u ${JAIL_PATH}${FILE} ${BASE_JAIL}${FILE})
 			elif [ "X${SYNC}X" = "XNX" ] || [ "X${SYNC}X" = "XnX" ] || [ "X${SYNC}X" = "XX" ]
 			then
-				printf "${BIRed}  >${Color_Off} not changed.\n"
+				printf "${BICyan}  >${Color_Off} not changed.\n"
 			fi
 		done
 	fi
