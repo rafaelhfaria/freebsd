@@ -1,0 +1,65 @@
+#!/bin/sh
+awk_cmd="/usr/bin/awk"
+expr_cmd="/bin/expr"
+freebsdversion_cmd="/bin/freebsd-version"
+hostname_cmd="/bin/hostname"
+jexec_cmd="/usr/sbin/jexec"
+jls_cmd="/usr/sbin/jls"
+sed_cmd="/usr/bin/sed"
+tr_cmd="/usr/bin/tr"
+wc_cmd="/usr/bin/wc"
+
+BHN=0
+
+SYSTEM_DOMAIN=`${hostname_cmd} -d`
+SYSTEM_HOSTNAME=`${hostname_cmd} | ${sed_cmd} s/".${SYSTEM_DOMAIN}"//`
+SYSTEM_VERSION=`${freebsdversion_cmd} -u`
+
+SHN=$(echo -n ${SYSTEM_HOSTNAME} | ${wc_cmd} -m)
+SV=$(echo -n ${SYSTEM_VERSION} | ${wc_cmd} -m)
+
+BHN=${SHN}
+BV=${SV}
+
+JAILS=`${jls_cmd} | ${awk_cmd} '{if(NR>1)print $1}'`
+
+for JAIL in ${JAILS}
+do
+	JAIL_HOSTNAME=`${jexec_cmd} ${JAIL} ${hostname_cmd} | ${sed_cmd} s/".${SYSTEM_DOMAIN}"//`
+	JAIL_VERSION=`${jexec_cmd} ${JAIL} ${freebsdversion_cmd} -u`
+	JHN=$(echo -n ${JAIL_HOSTNAME} | ${wc_cmd} -m)
+	JV=$(echo -n ${JAIL_VERSION} | ${wc_cmd} -m)
+
+	if [ ${JHN} -gt ${BHN} ]
+	then
+		BHN=${JHN}
+	fi
+
+	if [ ${JV} -gt ${BV} ]
+	then
+		BV=${JV}
+	fi
+done
+
+SPACE=`${expr_cmd} ${BHN} + 2 - ${SHN}`
+printf "${SYSTEM_HOSTNAME}%${SPACE}s: ${SYSTEM_VERSION}\n"
+SPACE=`${expr_cmd} ${BHN} + 2`
+printf "%${SPACE}s" | ${tr_cmd} " " "-"
+printf " "
+SPACE=`${expr_cmd} ${BV} + 1`
+printf "%${SPACE}s\n" | ${tr_cmd} " " "-"
+
+JAILS=`${jls_cmd} | ${awk_cmd} '{if(NR>1)print $1}'`
+
+for JAIL in ${JAILS}
+do
+	JAIL_HOSTNAME=`${jexec_cmd} ${JAIL} ${hostname_cmd} | ${sed_cmd} s/".${SYSTEM_DOMAIN}"//`
+	JAIL_VERSION=`${jexec_cmd} ${JAIL} ${freebsdversion_cmd} -u`
+	JHN=$(echo -n ${JAIL_HOSTNAME} | ${wc_cmd} -m)
+	JV=$(echo -n ${JAIL_VERSION} | ${wc_cmd} -m)
+
+	SPACE=`${expr_cmd} ${BHN} + 2 - ${JHN}`
+	printf "${JAIL_HOSTNAME}%${SPACE}s: ${JAIL_VERSION}\n"
+done
+
+exit 0
