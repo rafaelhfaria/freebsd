@@ -302,7 +302,7 @@ jib_addm()
 
 		# Create a new interface to the bridge
 		new=$( ifconfig epair create ) || return
-		ifconfig "$iface$bridge" addm $new || return
+		ifconfig "$iface" addm $new || return
 
 		# Rename the new interface
 		ifconfig $new name "e${i}a_$name" || return
