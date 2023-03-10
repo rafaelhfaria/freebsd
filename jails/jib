@@ -260,7 +260,7 @@ mustberoot_to_continue()
 	fi
 }
 
-jib_addm_usage="addm [-b BRIDGE_NAME] NAME [!]iface0 [[!]iface1 ...]"
+jib_addm_usage="addm NAME [!]bridge0 [[!]bridge1 ...]"
 jib_addm_descr="Creates e0b_NAME [e1b_NAME ...]"
 jib_addm()
 {
@@ -299,12 +299,6 @@ jib_addm()
 		ifconfig $iface up || return
 
 		# Make sure the interface has been bridged
-		if ! ifconfig "$iface$bridge" > /dev/null 2>&1; then
-			new=$( ifconfig bridge create ) || return
-			ifconfig $new addm $iface || return
-			ifconfig $new name "$iface$bridge" || return
-			ifconfig "$iface$bridge" up || return
-		fi
 
 		# Create a new interface to the bridge
 		new=$( ifconfig epair create ) || return
